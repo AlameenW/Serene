@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { useAuth } from '../auth/AuthContext'
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
 
@@ -36,12 +38,6 @@ const resources = [
     url: 'https://www.southeastern.edu/college-of-honors-and-excellence/tutoring/',
   },
 ]
-
-const openingMessage = {
-  id: 1,
-  role: 'ai',
-  text: "Hey Alex, looks like you've got a heavy week ahead with 3 deadlines coming up. What's on your mind?",
-}
 
 function ResourcesTab() {
   return (
@@ -82,7 +78,13 @@ function ResourcesTab() {
 }
 
 function AITab() {
-  const [messages, setMessages] = useState([openingMessage])
+  const { user } = useAuth()
+  const firstName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'there'
+  const [messages, setMessages] = useState([{
+    id: 1,
+    role: 'ai',
+    text: `Hey ${firstName}, looks like you've got a heavy week ahead with 3 deadlines coming up. What's on your mind?`,
+  }])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const chatRef = useRef(null)
@@ -132,7 +134,7 @@ function AITab() {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 57px)' }}>
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 114px)' }}>
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <div className="max-w-2xl mx-auto flex flex-col gap-4">
@@ -209,9 +211,35 @@ function AITab() {
 
 export default function Support() {
   const [tab, setTab] = useState('resources')
+  const { user } = useAuth()
+  const displayName = user?.displayName || user?.email || 'User'
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-[#F0F0F5] px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#5B5BD6] flex items-center justify-center">
+            <span className="text-white text-xs font-extrabold tracking-tight">S</span>
+          </div>
+          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">Serene</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Link to="/dashboard" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Dashboard</Link>
+          <Link to="/forecast" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Courses</Link>
+          <Link to="/support" className="px-4 py-2 text-sm font-semibold rounded-full bg-[#5B5BD6] text-white">Support Hub</Link>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link to="/profile" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
+              <span className="text-[#5B5BD6] text-xs font-extrabold">{displayName[0].toUpperCase()}</span>
+            </div>
+            <span className="text-sm font-semibold text-[#0F0F0F]">{displayName}</span>
+          </Link>
+          <Link to="/" className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">Sign out</Link>
+        </div>
+      </nav>
+
       {/* Tab toggles */}
       <div className="bg-white border-b border-[#EBEBF0]">
         <div className="max-w-5xl mx-auto px-8 flex gap-1 pt-3">
