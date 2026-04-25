@@ -1,0 +1,7 @@
+@import "tailwindcss";
+* {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+html, body {
+  overflow-x: hidden;
+}
