@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
 import { useAuth } from '../auth/AuthContext'
+import { useAppState } from '../lib/AppContext'
 
 // ─── Stress scoring ──────────────────────────────────────────────────────────
 
@@ -65,32 +66,12 @@ function buildForecast(deadlines, activeMood) {
   })
 }
 
-const mockDeadlines = [
-  { id: 1,  course: 'CMPS 479', title: 'Pumping Lemma Assignment', date: '2026-04-30', weight: '10%', type: 'assignment' },
-  { id: 2,  course: 'MATH 312', title: 'Midterm Exam',             date: '2026-04-29', weight: '25%', type: 'exam' },
-  { id: 3,  course: 'CMPS 479', title: 'PDA and CFG Assignment',   date: '2026-05-03', weight: '15%', type: 'assignment' },
-  { id: 4,  course: 'CMPS 451', title: 'Final Project',            date: '2026-05-12', weight: '40%', type: 'project' },
-  { id: 5,  course: 'MATH 312', title: 'Problem Set 8',            date: '2026-05-02', weight: '5%',  type: 'assignment' },
-  { id: 6,  course: 'HIST 154', title: 'History HW10',             date: '2026-04-28', weight: '5%',  type: 'assignment' },
-  { id: 7,  course: 'HIST 154', title: 'Midterm Exam',             date: '2026-04-30', weight: '20%', type: 'exam' },
-  { id: 8,  course: 'CMPS 479', title: 'DFA and NFA',              date: '2026-04-26', weight: '15%', type: 'assignment' },
-  { id: 9,  course: 'CMPS 285', title: 'Final Project',            date: '2026-05-10', weight: '40%', type: 'project' },
-  { id: 10, course: 'MATH 312', title: 'Problem Set 10',           date: '2026-05-08', weight: '10%', type: 'assignment' },
-  { id: 11, course: 'HIST 154', title: 'Final Exam',               date: '2026-05-16', weight: '30%', type: 'exam' },
-  { id: 12, course: 'CMPS 451', title: 'ML Pipeline Submission',   date: '2026-04-27', weight: '30%', type: 'project' },
-  { id: 13, course: 'MATH 312', title: 'Final Exam',               date: '2026-05-14', weight: '35%', type: 'exam' },
-  { id: 14, course: 'CMPS 285', title: 'Final Prototype',          date: '2026-04-27', weight: '20%', type: 'project' },
-  { id: 15, course: 'CMPS 479', title: 'Final Exam',               date: '2026-05-15', weight: '35%', type: 'exam' },
-]
-
-const sorted = [...mockDeadlines].sort((a, b) => new Date(a.date) - new Date(b.date))
-
 const moods = [
-  { label: 'Calm',},
-  { label: 'Focused',},
+  { label: 'Calm' },
+  { label: 'Focused' },
   { label: 'Anxious' },
-  { label: 'Overwhelmed'},
-  { label: 'Tired',},
+  { label: 'Overwhelmed' },
+  { label: 'Tired' },
 ]
 
 function barColor(score) {  // score 0–100; thresholds match 7/4 on 0–10 scale
@@ -140,9 +121,12 @@ const dateLabel = new Date().toLocaleDateString('en-US', {
 export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { deadlines, completed, activeMood, setActiveMood } = useAppState()
   const displayName = user?.displayName || user?.email || 'User'
-  const [activeMood, setActiveMood] = useState(null)
   const [showAlert, setShowAlert] = useState(!alertDismissed)
+
+  const activeDeadlines = deadlines.filter(d => !completed.has(d.id))
+  const sorted = [...activeDeadlines].sort((a, b) => new Date(a.date) - new Date(b.date))
 
   function dismissAlert() {
     alertDismissed = true
@@ -154,7 +138,7 @@ export default function Dashboard() {
     navigate('/support')
   }
 
-  const forecast   = useMemo(() => buildForecast(mockDeadlines, activeMood), [activeMood])
+  const forecast   = useMemo(() => buildForecast(activeDeadlines, activeMood), [activeDeadlines, activeMood])
   const todayScore = forecast[0].score
   const stress     = stressMeta(todayScore)
 
@@ -184,7 +168,7 @@ export default function Dashboard() {
             Dashboard
           </Link>
           <Link
-            to="/forecast"
+            to="/courses"
             className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors"
           >
             Courses
