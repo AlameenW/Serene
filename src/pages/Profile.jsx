@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 
 const mockDeadlines = [
   { id: 1,  course: 'CMPS 479', title: 'Pumping Lemma Assignment', date: '2026-04-30', weight: '10%', type: 'assignment' },
@@ -69,7 +70,8 @@ function stressLabel(score) {
 const stress = stressLabel(stressScore)
 
 export default function Profile() {
-  const [info, setInfo]   = useState({ name: 'Sofia', university: '', major: '', year: '' })
+  const { user: authUser } = useAuth()
+  const [info, setInfo]   = useState({ name: authUser?.displayName || '', email: authUser?.email || '', university: '', major: '', year: '' })
   const [editing, setEditing] = useState(false)
   const [draft,   setDraft]   = useState({ ...info })
 
@@ -84,10 +86,11 @@ export default function Profile() {
   }
 
   const fields = [
-    { key: 'name',       label: 'Name'       },
-    { key: 'university', label: 'University' },
-    { key: 'major',      label: 'Major'      },
-    { key: 'year',       label: 'Year'       },
+    { key: 'name',       label: 'Name',       readonly: false },
+    { key: 'email',      label: 'Email',      readonly: true  },
+    { key: 'university', label: 'University', readonly: false },
+    { key: 'major',      label: 'Major',      readonly: false },
+    { key: 'year',       label: 'Year',       readonly: false },
   ]
 
   return (
@@ -114,7 +117,7 @@ export default function Profile() {
         </div>
 
         <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
-          <span className="text-[#5B5BD6] text-xs font-extrabold">{info.name[0]?.toUpperCase()}</span>
+          <span className="text-[#5B5BD6] text-xs font-extrabold">{(authUser?.displayName || authUser?.email || 'U')[0].toUpperCase()}</span>
         </div>
       </nav>
 
@@ -167,10 +170,10 @@ export default function Profile() {
           </div>
 
           <div className="divide-y divide-[#F2F2F7]">
-            {fields.map(({ key, label }) => (
+            {fields.map(({ key, label, readonly }) => (
               <div key={key} className="flex items-center justify-between py-3.5">
                 <span className="text-sm text-[#9999AA] font-medium w-28 shrink-0">{label}</span>
-                {editing ? (
+                {editing && !readonly ? (
                   <input
                     type={key === 'year' ? 'number' : 'text'}
                     value={draft[key]}

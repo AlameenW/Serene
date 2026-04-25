@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
-
-const user = { name: 'Sofia' }
+import { useAuth } from '../auth/AuthContext'
 
 // ─── Stress scoring ──────────────────────────────────────────────────────────
 
@@ -104,35 +103,6 @@ function stressMeta(score) {
   if (score >= 70) return { label: 'High',     dot: 'bg-red-500',    text: 'text-red-500'    }
   if (score >= 40) return { label: 'Moderate', dot: 'bg-yellow-500', text: 'text-yellow-600' }
   return               { label: 'Low',         dot: 'bg-green-500',  text: 'text-green-600'  }
-import { useAuth } from '../auth/AuthContext'
-
-export default function Dashboard() {
-  const { user, loading } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white p-8">
-        <p className="text-[#6B6B80]">Loading…</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-white p-8">
-      <h1 className="text-xl font-bold text-[#0F0F0F]">Dashboard</h1>
-      {user ? (
-        <p className="mt-3 text-[#6B6B80]">
-          Signed in as{' '}
-          <span className="font-semibold text-[#0F0F0F]">
-            {user.displayName || user.email || 'Google user'}
-          </span>
-          {user.email ? ` (${user.email})` : ''}.
-        </p>
-      ) : (
-        <p className="mt-3 text-[#6B6B80]">You are not signed in with Google yet.</p>
-      )}
-    </div>
-  )
 }
 
 function typeCls(type) {
@@ -169,6 +139,8 @@ const dateLabel = new Date().toLocaleDateString('en-US', {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const displayName = user?.displayName || user?.email || 'User'
   const [activeMood, setActiveMood] = useState(null)
   const [showAlert, setShowAlert] = useState(!alertDismissed)
 
@@ -228,9 +200,9 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <Link to="/profile" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
-              <span className="text-[#5B5BD6] text-xs font-extrabold">{user.name[0]}</span>
+              <span className="text-[#5B5BD6] text-xs font-extrabold">{displayName[0].toUpperCase()}</span>
             </div>
-            <span className="text-sm font-semibold text-[#0F0F0F]">{user.name}</span>
+            <span className="text-sm font-semibold text-[#0F0F0F]">{displayName}</span>
           </Link>
           <Link to="/" className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">
             Sign out
