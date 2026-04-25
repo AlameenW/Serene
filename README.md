@@ -1,6 +1,6 @@
 # Serene
 
-A student wellness web app that helps college students manage academic stress through deadline tracking, a 7-day stress forecast, campus resources, and an AI-powered support chat.
+A student wellness web app that helps Southeastern students manage academic stress through deadline tracking, a 7-day stress forecast, campus resources, and an AI-powered support chat.
 
 ---
 
@@ -15,7 +15,7 @@ Alameen Adeku, David Soboma Bestman, Sofiat Adeyemi
 - **Google Authentication** — Sign in with Google via Firebase Auth
 - **Stress Forecast** — 7-day bar chart showing predicted stress levels based on upcoming deadlines, assignment weights, and daily mood check-ins
 - **Deadline Tracking** — All semester deadlines sorted and displayed with urgency indicators
-- **Campus Resources** — Quick links to on-campus wellness and academic support services
+- **Campus Resources** — Quick links to on-campus wellness and academic support services at Southeastern Louisiana University.
 - **AI Support Chat** — Conversational support powered by Gemini 2.5 Flash, with context-aware opening messages and a compassionate system prompt
 - **Profile Page** — Displays user info pulled from Google Auth with editable university, major, and year fields
 
