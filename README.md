@@ -4,6 +4,12 @@ A student wellness web app that helps college students manage academic stress th
 
 ---
 
+
+## Team
+Alameen Adeku, David Soboma Bestman, Sofiat Adeyemi
+
+---
+
 ## Features
 
 - **Google Authentication** — Sign in with Google via Firebase Auth
@@ -78,13 +84,6 @@ Each day's stress score (0–10) is calculated from:
 3. **Clustering multiplier** — multiple deadlines in a 3-day window compound the score
 4. **Mood modifier** — daily check-in (Overwhelmed, Anxious, Tired, Focused, Calm) shifts today's score
 
----
-
-## Team
-
-| Name | GitHub |
-|---|---|
-| Alameen Adeku, David Soboma Bestman, Sofiat Adeyemi
 
 ---
 
