@@ -1,6 +1,7 @@
 import { initializeApp, getApp, getApps } from 'firebase/app'
 import { getAnalytics, isSupported } from 'firebase/analytics'
 import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
 
 /**
  * Config comes from Vite env (see `serene.firebase.env.example` → copy to `.env.local`).
@@ -30,6 +31,7 @@ export function isFirebaseConfigured() {
 
 let cachedApp = null
 let cachedAuth = null
+let cachedDb = null
 let analyticsInitDone = false
 
 function initAnalyticsIfSupported(app) {
@@ -71,4 +73,13 @@ export function getFirebaseAuth() {
   if (cachedAuth) return cachedAuth
   cachedAuth = getAuth(app)
   return cachedAuth
+}
+
+/** @returns {import('firebase/firestore').Firestore | null} */
+export function getFirebaseFirestore() {
+  const app = getOrInitApp()
+  if (!app) return null
+  if (cachedDb) return cachedDb
+  cachedDb = getFirestore(app)
+  return cachedDb
 }

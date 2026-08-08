@@ -1,22 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-
-const INITIAL_DEADLINES = [
-  { id: 1,  course: 'CMPS 479', title: 'Pumping Lemma Assignment', date: '2026-04-30', weight: '10%', type: 'assignment' },
-  { id: 2,  course: 'MATH 312', title: 'Midterm Exam',             date: '2026-04-29', weight: '25%', type: 'exam'       },
-  { id: 3,  course: 'CMPS 479', title: 'PDA and CFG Assignment',   date: '2026-05-03', weight: '15%', type: 'assignment' },
-  { id: 4,  course: 'CMPS 451', title: 'Final Project',            date: '2026-05-12', weight: '40%', type: 'project'    },
-  { id: 5,  course: 'MATH 312', title: 'Problem Set 8',            date: '2026-05-02', weight: '5%',  type: 'assignment' },
-  { id: 6,  course: 'HIST 154', title: 'History HW10',             date: '2026-04-28', weight: '5%',  type: 'assignment' },
-  { id: 7,  course: 'HIST 154', title: 'Midterm Exam',             date: '2026-04-30', weight: '20%', type: 'exam'       },
-  { id: 8,  course: 'CMPS 479', title: 'DFA and NFA',              date: '2026-04-26', weight: '15%', type: 'assignment' },
-  { id: 9,  course: 'CMPS 285', title: 'Final Project',            date: '2026-05-10', weight: '40%', type: 'project'    },
-  { id: 10, course: 'MATH 312', title: 'Problem Set 10',           date: '2026-05-08', weight: '10%', type: 'assignment' },
-  { id: 11, course: 'HIST 154', title: 'Final Exam',               date: '2026-05-16', weight: '30%', type: 'exam'       },
-  { id: 12, course: 'CMPS 451', title: 'ML Pipeline Submission',   date: '2026-04-27', weight: '30%', type: 'project'    },
-  { id: 13, course: 'MATH 312', title: 'Final Exam',               date: '2026-05-14', weight: '35%', type: 'exam'       },
-  { id: 14, course: 'CMPS 285', title: 'Final Prototype',          date: '2026-04-27', weight: '20%', type: 'project'    },
-  { id: 15, course: 'CMPS 479', title: 'Final Exam',               date: '2026-05-15', weight: '35%', type: 'exam'       },
-]
+import {
+  collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc,
+  writeBatch, serverTimestamp,
+} from 'firebase/firestore'
+import { useAuth } from '../auth/AuthContext'
+import { getFirebaseFirestore } from './firebase'
 
 function load(key, fallback) {
   try {
@@ -31,57 +19,220 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10)
 }
 
+const EMPTY_PROFILE = { university: '', major: '', year: '' }
+
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
-  const [deadlines, setDeadlines] = useState(() => load('serene_deadlines', INITIAL_DEADLINES))
-  const [completed, setCompleted] = useState(() => new Set(load('serene_completed', [])))
+  const { user } = useAuth()
+  const uid = user?.uid ?? null
 
-  // Mood resets each new day
+  const [courses, setCourses] = useState([])
+  const [deadlines, setDeadlines] = useState([])
+  const [profile, setProfile] = useState(EMPTY_PROFILE)
+  const [loading, setLoading] = useState(true)
+
+  // Mood resets each new day; kept in localStorage — transient, no cross-device value
   const [activeMood, setActiveMoodRaw] = useState(() => {
     const stored = load('serene_mood', null)
     if (!stored) return null
     return stored.date === todayStr() ? stored.mood : null
   })
 
-  useEffect(() => {
-    localStorage.setItem('serene_deadlines', JSON.stringify(deadlines))
-  }, [deadlines])
-
-  useEffect(() => {
-    localStorage.setItem('serene_completed', JSON.stringify([...completed]))
-  }, [completed])
-
   function setActiveMood(mood) {
     setActiveMoodRaw(mood)
     localStorage.setItem('serene_mood', JSON.stringify(mood ? { mood, date: todayStr() } : null))
   }
 
-  function toggleComplete(id) {
-    setCompleted(prev => {
-      const s = new Set(prev)
-      s.has(id) ? s.delete(id) : s.add(id)
-      return s
-    })
+  // Subscribe to this user's Firestore data; tears down and resets on sign-out or user change.
+  useEffect(() => {
+    if (!uid) {
+      setCourses([])
+      setDeadlines([])
+      setProfile(EMPTY_PROFILE)
+      setLoading(false)
+      return
+    }
+
+    const db = getFirebaseFirestore()
+    if (!db) {
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    const ready = { courses: false, deadlines: false, profile: false }
+    function maybeDoneLoading() {
+      if (ready.courses && ready.deadlines && ready.profile) setLoading(false)
+    }
+
+    const unsubCourses = onSnapshot(
+      collection(db, 'users', uid, 'courses'),
+      (snap) => {
+        setCourses(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        ready.courses = true
+        maybeDoneLoading()
+      },
+      (err) => {
+        console.error('[courses onSnapshot]', err)
+        ready.courses = true
+        maybeDoneLoading()
+      },
+    )
+
+    const unsubDeadlines = onSnapshot(
+      collection(db, 'users', uid, 'deadlines'),
+      (snap) => {
+        setDeadlines(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        ready.deadlines = true
+        maybeDoneLoading()
+      },
+      (err) => {
+        console.error('[deadlines onSnapshot]', err)
+        ready.deadlines = true
+        maybeDoneLoading()
+      },
+    )
+
+    const unsubProfile = onSnapshot(
+      doc(db, 'users', uid),
+      (snap) => {
+        const data = snap.data()
+        setProfile({
+          university: data?.university ?? '',
+          major: data?.major ?? '',
+          year: data?.year ?? '',
+        })
+        ready.profile = true
+        maybeDoneLoading()
+      },
+      (err) => {
+        console.error('[profile onSnapshot]', err)
+        ready.profile = true
+        maybeDoneLoading()
+      },
+    )
+
+    return () => {
+      unsubCourses()
+      unsubDeadlines()
+      unsubProfile()
+    }
+  }, [uid])
+
+  async function addCourse(entry) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      await addDoc(collection(db, 'users', uid, 'courses'), {
+        ...entry,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not save the course. Please try again.')
+    }
   }
 
-  function addDeadline(entry) {
-    setDeadlines(prev => [...prev, entry])
+  async function updateCourse(id, changes) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      await updateDoc(doc(db, 'users', uid, 'courses', id), { ...changes, updatedAt: serverTimestamp() })
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not save changes. Please try again.')
+    }
   }
 
-  function updateDeadline(id, changes) {
-    setDeadlines(prev => prev.map(d => d.id === id ? { ...d, ...changes } : d))
+  // Cascades: deletes the course's deadlines (from the live local snapshot) along with the course itself.
+  async function deleteCourse(id) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      const batch = writeBatch(db)
+      deadlines
+        .filter(d => d.courseId === id)
+        .forEach(d => batch.delete(doc(db, 'users', uid, 'deadlines', d.id)))
+      batch.delete(doc(db, 'users', uid, 'courses', id))
+      await batch.commit()
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not delete the course. Please try again.')
+    }
   }
 
-  function deleteDeadline(id) {
-    setDeadlines(prev => prev.filter(d => d.id !== id))
-    setCompleted(prev => { const s = new Set(prev); s.delete(id); return s })
+  async function addDeadline(entry) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      await addDoc(collection(db, 'users', uid, 'deadlines'), {
+        ...entry,
+        completed: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not save the deadline. Please try again.')
+    }
+  }
+
+  async function updateDeadline(id, changes) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      await updateDoc(doc(db, 'users', uid, 'deadlines', id), { ...changes, updatedAt: serverTimestamp() })
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not save changes. Please try again.')
+    }
+  }
+
+  async function deleteDeadline(id) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      await deleteDoc(doc(db, 'users', uid, 'deadlines', id))
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not delete the deadline. Please try again.')
+    }
+  }
+
+  async function toggleComplete(id) {
+    const db = getFirebaseFirestore()
+    const current = deadlines.find(d => d.id === id)
+    if (!uid || !db || !current) return
+    try {
+      await updateDoc(doc(db, 'users', uid, 'deadlines', id), {
+        completed: !current.completed,
+        updatedAt: serverTimestamp(),
+      })
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not update the deadline. Please try again.')
+    }
+  }
+
+  async function updateProfile(fields) {
+    const db = getFirebaseFirestore()
+    if (!uid || !db) return
+    try {
+      await setDoc(doc(db, 'users', uid), { ...fields, updatedAt: serverTimestamp() }, { merge: true })
+    } catch (e) {
+      console.error(e)
+      window.alert('Could not save your profile. Please try again.')
+    }
   }
 
   return (
     <AppContext.Provider value={{
-      deadlines, addDeadline, updateDeadline, deleteDeadline,
-      completed, toggleComplete,
+      courses, addCourse, updateCourse, deleteCourse,
+      deadlines, addDeadline, updateDeadline, deleteDeadline, toggleComplete,
+      profile, updateProfile,
+      loading,
       activeMood, setActiveMood,
     }}>
       {children}

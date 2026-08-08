@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { useAuth } from '../auth/AuthContext'
+import { useAppState } from '../lib/AppContext'
+import { getUpcoming } from '../lib/stress'
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
 
@@ -79,11 +81,15 @@ function ResourcesTab() {
 
 function AITab() {
   const { user } = useAuth()
+  const { deadlines } = useAppState()
   const firstName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'there'
-  const [messages, setMessages] = useState([{
+  const upcomingCount = getUpcoming(deadlines).length
+  const [messages, setMessages] = useState(() => [{
     id: 1,
     role: 'ai',
-    text: `Hey ${firstName}, looks like you've got a heavy week ahead with 3 deadlines coming up. What's on your mind?`,
+    text: upcomingCount === 0
+      ? `Hey ${firstName}, looks like your week is pretty clear. What's on your mind?`
+      : `Hey ${firstName}, looks like you've got ${upcomingCount} deadline${upcomingCount === 1 ? '' : 's'} coming up this week. What's on your mind?`,
   }])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -210,9 +216,15 @@ function AITab() {
 }
 
 export default function Support() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState('resources')
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const displayName = user?.displayName || user?.email || 'User'
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/', { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -226,7 +238,7 @@ export default function Support() {
         </div>
         <div className="flex items-center gap-1">
           <Link to="/dashboard" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Dashboard</Link>
-          <Link to="/forecast" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Courses</Link>
+          <Link to="/courses" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Courses</Link>
           <Link to="/support" className="px-4 py-2 text-sm font-semibold rounded-full bg-[#5B5BD6] text-white">Support Hub</Link>
         </div>
         <div className="flex items-center gap-3">
@@ -236,7 +248,7 @@ export default function Support() {
             </div>
             <span className="text-sm font-semibold text-[#0F0F0F]">{displayName}</span>
           </Link>
-          <Link to="/" className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">Sign out</Link>
+          <button onClick={handleSignOut} className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">Sign out</button>
         </div>
       </nav>
 
