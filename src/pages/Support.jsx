@@ -1,11 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai/web'
 import { useAuth } from '../auth/AuthContext'
 import { useAppState } from '../lib/AppContext'
 import { getUpcoming } from '../lib/stress'
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
+function isGeminiConfigured() {
+  const key = import.meta.env.VITE_GEMINI_API_KEY
+  return typeof key === 'string' && key.length > 0
+}
+
+// Constructing GoogleGenAI without a key throws immediately in the browser — build it lazily,
+// only once we know a key is present, so a missing key can't crash the whole app on load.
+let cachedAi = null
+function getGeminiClient() {
+  if (!isGeminiConfigured()) return null
+  if (!cachedAi) cachedAi = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY })
+  return cachedAi
+}
 
 const SYSTEM_INSTRUCTION = `You are a warm, empathetic AI support assistant built into Serene, a student wellness app.
 Your role is to help college students manage academic stress and emotional wellbeing.
@@ -97,12 +109,11 @@ function AITab() {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
-    chatRef.current = model.startChat({
-      history: [
-        { role: 'user', parts: [{ text: SYSTEM_INSTRUCTION }] },
-        { role: 'model', parts: [{ text: "Understood! I'm here to support you." }] },
-      ],
+    const ai = getGeminiClient()
+    if (!ai) return
+    chatRef.current = ai.chats.create({
+      model: 'gemini-2.5-flash',
+      config: { systemInstruction: SYSTEM_INSTRUCTION },
     })
   }, [])
 
@@ -115,11 +126,20 @@ function AITab() {
     if (!text || loading) return
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', text }])
     setInput('')
+
+    if (!chatRef.current) {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'ai',
+        text: "AI chat isn't set up yet — a Gemini API key needs to be added to this app's config.",
+      }])
+      return
+    }
+
     setLoading(true)
     try {
-      const result = await chatRef.current.sendMessage(text)
-      const reply = result.response.text()
-      setMessages(prev => [...prev, { id: Date.now(), role: 'ai', text: reply }])
+      const response = await chatRef.current.sendMessage({ message: text })
+      setMessages(prev => [...prev, { id: Date.now(), role: 'ai', text: response.text }])
     } catch (err) {
       console.error('[Gemini error]', err)
       setMessages(prev => [...prev, {

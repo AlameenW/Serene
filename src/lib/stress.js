@@ -111,9 +111,10 @@ export function daysLabel(dateStr, today = new Date()) {
   const t = new Date(today)
   t.setHours(0, 0, 0, 0)
   const diff = Math.round((parseLocal(dateStr) - t) / 86400000)
-  if (diff <= 0) return 'Today'
+  if (diff === 0) return 'Today'
   if (diff === 1) return 'Tmrw'
-  return `${diff}d`
+  if (diff > 1) return `${diff}d`
+  return `${Math.abs(diff)}d overdue`
 }
 
 // Non-completed deadlines due within the next `days` days (inclusive), soonest first.

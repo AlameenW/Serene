@@ -117,12 +117,17 @@ export default function Courses() {
 
   const activeDeadlines = deadlines.filter(d => !d.completed)
 
-  const visibleDeadlines = (selected
+  const courseScopedDeadlines = selected
     ? activeDeadlines.filter(d => d.courseId === selected)
     : activeDeadlines
-  )
+
+  const visibleDeadlines = courseScopedDeadlines
     .filter(d => parseLocal(d.date) >= today)
     .sort((a, b) => parseLocal(a.date) - parseLocal(b.date))
+
+  const pastDeadlines = courseScopedDeadlines
+    .filter(d => parseLocal(d.date) < today)
+    .sort((a, b) => parseLocal(b.date) - parseLocal(a.date))
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -424,6 +429,76 @@ export default function Courses() {
                 </p>
               )}
             </div>
+
+            {/* Past deadlines — overdue, not yet marked complete */}
+            {pastDeadlines.length > 0 && (
+              <div className="bg-white border border-red-100 rounded-2xl p-6 mt-6">
+                <p className="text-[11px] font-semibold text-red-400 uppercase tracking-widest mb-5">
+                  {selected ? `${courses.find(c => c.id === selected)?.code ?? ''} — Past Deadlines` : 'Past Deadlines'}
+                </p>
+                <div className="space-y-3">
+                  {pastDeadlines.map((d) => {
+                    const course = courses.find(c => c.id === d.courseId)
+                    return (
+                      <div key={d.id} className="flex items-center gap-4 group">
+                        {/* Complete check */}
+                        <div className="relative shrink-0 group/check">
+                          <button
+                            onClick={() => toggleComplete(d.id)}
+                            className="w-5 h-5 rounded-full border-2 border-[#D0D0DC] hover:border-green-500 flex items-center justify-center transition-colors"
+                          />
+                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0F0F0F] text-white text-[10px] font-semibold rounded-md whitespace-nowrap opacity-0 group-hover/check:opacity-100 transition-opacity pointer-events-none">
+                            Mark as complete
+                          </span>
+                        </div>
+
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md min-w-[72px] text-center opacity-70 ${typeCls(d.type)}`}>
+                          {d.type}
+                        </span>
+
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                          <span className="text-sm font-bold text-[#6B6B80] truncate">{d.title}</span>
+                          {!selected && (
+                            <span className="text-[11px] text-[#9999AA] shrink-0">{course?.code ?? 'Unknown course'}</span>
+                          )}
+                        </div>
+
+                        <span className="text-[11px] font-semibold shrink-0 text-[#9999AA]">{formatWeight(d.weight) ?? '—'}</span>
+                        <span className="text-sm font-semibold shrink-0 min-w-[80px] text-right text-red-500">
+                          {daysLabel(d.date, today)}
+                        </span>
+
+                        {/* Edit / Delete — visible on hover */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <button
+                            onClick={() => openEditDeadline(d)}
+                            title="Edit"
+                            className="p-1.5 rounded-lg text-[#9999AA] hover:text-[#5B5BD6] hover:bg-[#EDEDFF] transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => deleteDeadline(d.id)}
+                            title="Delete"
+                            className="p-1.5 rounded-lg text-[#9999AA] hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6l-1 14H6L5 6" />
+                              <path d="M10 11v6M14 11v6" />
+                              <path d="M9 6V4h6v2" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>
