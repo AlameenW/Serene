@@ -84,6 +84,14 @@ export function courseStressScore(courseId, today, deadlines) {
   return Math.min((pressure * clusterMult) / MAX_PRESSURE, 1) * 100
 }
 
+// Hex color for a 0-100 score, matching the Low/Moderate/High thresholds — for raw-fill
+// contexts (Recharts Cell fill, inline styles) where Tailwind class names don't apply.
+export function barColor(score) {
+  if (score >= 70) return '#ef4444'
+  if (score >= 40) return '#eab308'
+  return '#22c55e'
+}
+
 export function stressMeta(score) {
   if (score >= 70) return { label: 'High', dot: 'bg-red-500', text: 'text-red-500', bar: 'bg-red-400' }
   if (score >= 40) return { label: 'Moderate', dot: 'bg-yellow-500', text: 'text-yellow-600', bar: 'bg-yellow-400' }

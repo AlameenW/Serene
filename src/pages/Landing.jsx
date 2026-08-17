@@ -1,4 +1,5 @@
 import LandingSignInNav from '../components/LandingSignInNav'
+import { barColor } from '../lib/stress'
 
 const features = [
   {
@@ -30,14 +31,16 @@ const features = [
   },
 ]
 
+// Colors derive from the real barColor() thresholds (lib/stress.js) — same red/yellow/green
+// scheme as the actual Dashboard chart, not independently picked to just look similar.
 const previewBars = [
-  { day: 'Mon', pct: 22, color: '#22c55e' },
-  { day: 'Tue', pct: 52, color: '#eab308' },
-  { day: 'Wed', pct: 92, color: '#ef4444' },
-  { day: 'Thu', pct: 78, color: '#ef4444' },
-  { day: 'Fri', pct: 44, color: '#eab308' },
-  { day: 'Sat', pct: 20, color: '#22c55e' },
-  { day: 'Sun', pct: 14, color: '#22c55e' },
+  { day: 'Mon', pct: 22 },
+  { day: 'Tue', pct: 52 },
+  { day: 'Wed', pct: 92 },
+  { day: 'Thu', pct: 78 },
+  { day: 'Fri', pct: 44 },
+  { day: 'Sat', pct: 20 },
+  { day: 'Sun', pct: 14 },
 ]
 
 const upcoming = [
@@ -100,10 +103,10 @@ export default function Landing() {
             {/* Bar chart */}
             <div className="flex items-end gap-[6px] h-32 mb-4">
               {previewBars.map(bar => (
-                <div key={bar.day} className="flex-1 flex flex-col items-center gap-1.5">
+                <div key={bar.day} className="flex-1 h-full flex flex-col justify-end items-center gap-1.5">
                   <div
                     className="w-full rounded-t-[5px]"
-                    style={{ height: `${bar.pct}%`, backgroundColor: bar.color }}
+                    style={{ height: `${bar.pct}%`, backgroundColor: barColor(bar.pct) }}
                   />
                   <span className="text-[10px] font-medium text-[#9999AA]">{bar.day}</span>
                 </div>

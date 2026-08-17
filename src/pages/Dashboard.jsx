@@ -3,13 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
 import { useAuth } from '../auth/AuthContext'
 import { useAppState } from '../lib/AppContext'
-import { buildForecast, stressMeta, typeCls, daysLabel, formatDue, formatWeight, getUpcoming } from '../lib/stress'
-
-function barColor(score) {  // score 0–100; thresholds match 7/4 on 0–10 scale
-  if (score >= 70) return '#ef4444'
-  if (score >= 40) return '#eab308'
-  return '#22c55e'
-}
+import { buildForecast, stressMeta, typeCls, daysLabel, formatDue, formatWeight, getUpcoming, barColor } from '../lib/stress'
 
 const dateLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
