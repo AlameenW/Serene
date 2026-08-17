@@ -48,9 +48,9 @@ export default function Dashboard() {
   const moods = [
     { label: 'Calm' },
     { label: 'Focused' },
+    { label: 'Tired' },
     { label: 'Anxious' },
     { label: 'Overwhelmed' },
-    { label: 'Tired' },
   ]
 
   return (
