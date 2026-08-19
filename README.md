@@ -2,6 +2,8 @@
 
 A student wellness web app that helps Southeastern students manage academic stress through deadline tracking, a 7-day stress forecast, campus resources, and an AI-powered support chat.
 
+**Live app:** [https://serene-cc2f7.web.app/](https://serene-cc2f7.web.app/)
+
 ---
 
 
