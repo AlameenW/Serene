@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useAppState } from '../lib/AppContext'
 import { buildForecast, stressMeta, getUpcoming } from '../lib/stress'
+import Navbar from '../components/Navbar'
 
 const FIELDS = [
   { key: 'name', label: 'Name', readonly: false },
@@ -57,34 +58,10 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-[#F0F0F5] px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#5B5BD6] flex items-center justify-center">
-            <span className="text-white text-xs font-extrabold tracking-tight">S</span>
-          </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">Serene</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Link to="/dashboard" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">
-            Dashboard
-          </Link>
-          <Link to="/courses" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">
-            Courses
-          </Link>
-          <Link to="/support" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">
-            Support Hub
-          </Link>
-        </div>
-
-        <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
-          <span className="text-[#5B5BD6] text-xs font-extrabold">{(authUser?.displayName || authUser?.email || 'U')[0].toUpperCase()}</span>
-        </div>
-      </nav>
+      <Navbar variant="compact" />
 
       {/* Main */}
-      <main className="max-w-lg mx-auto px-6 py-10">
+      <main className="max-w-lg mx-auto px-4 md:px-6 py-10">
         {/* Back link */}
         <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-[#9999AA] hover:text-[#0F0F0F] transition-colors mb-8">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">

@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
-import { useAuth } from '../auth/AuthContext'
 import { useAppState } from '../lib/AppContext'
-import { buildForecast, stressMeta, typeCls, daysLabel, formatDue, formatWeight, getUpcoming, barColor } from '../lib/stress'
+import { buildForecast, stressMeta, daysLabel, formatDue, getUpcoming, barColor } from '../lib/stress'
+import Navbar from '../components/Navbar'
+import DeadlineRow from '../components/DeadlineRow'
 
 const dateLabel = new Date().toLocaleDateString('en-US', {
   weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
@@ -11,20 +12,13 @@ const dateLabel = new Date().toLocaleDateString('en-US', {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
   const { courses, deadlines, loading, activeMood, setActiveMood } = useAppState()
-  const displayName = user?.displayName || user?.email || 'User'
   const [showAlert, setShowAlert] = useState(true)
 
   const courseMap = useMemo(() => new Map(courses.map(c => [c.id, c])), [courses])
   const activeDeadlines = useMemo(() => deadlines.filter(d => !d.completed), [deadlines])
   const sorted = [...activeDeadlines].sort((a, b) => new Date(a.date) - new Date(b.date))
   const next7 = getUpcoming(deadlines, { days: 7 }).slice(0, 5)
-
-  async function handleSignOut() {
-    await signOut()
-    navigate('/', { replace: true })
-  }
 
   function dismissAlert() {
     setShowAlert(false)
@@ -49,51 +43,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-[#F0F0F5] px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#5B5BD6] flex items-center justify-center">
-            <span className="text-white text-xs font-extrabold tracking-tight">S</span>
-          </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">Serene</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Link
-            to="/dashboard"
-            className="px-4 py-2 text-sm font-semibold rounded-full bg-[#5B5BD6] text-white"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/courses"
-            className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors"
-          >
-            Courses
-          </Link>
-          <Link
-            to="/support"
-            className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors"
-          >
-            Support Hub
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link to="/profile" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
-              <span className="text-[#5B5BD6] text-xs font-extrabold">{displayName[0].toUpperCase()}</span>
-            </div>
-            <span className="text-sm font-semibold text-[#0F0F0F]">{displayName}</span>
-          </Link>
-          <button onClick={handleSignOut} className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">
-            Sign out
-          </button>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Main */}
-      <main className="max-w-5xl mx-auto px-8 py-10">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-10">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="w-8 h-8 rounded-full border-2 border-[#EBEBF0] border-t-[#5B5BD6] animate-spin" />
@@ -101,9 +54,9 @@ export default function Dashboard() {
         ) : (
           <>
             {/* Date + stress level */}
-            <div className="flex items-start justify-between mb-8">
-              <h1 className="text-3xl font-extrabold text-[#0F0F0F] tracking-tight">{dateLabel}</h1>
-              <div className="flex items-center gap-2 bg-white border border-[#EBEBF0] rounded-xl px-4 py-2.5 mt-1 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-8">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight">{dateLabel}</h1>
+              <div className="flex items-center gap-2 bg-white border border-[#EBEBF0] rounded-xl px-4 py-2.5 sm:mt-1 shadow-sm self-start">
                 <span className="text-[11px] font-semibold text-[#9999AA] uppercase tracking-widest">Stress Level</span>
                 {activeMood ? (
                   <div className="flex items-center gap-1.5">
@@ -138,8 +91,8 @@ export default function Dashboard() {
             </div>
 
             {/* Forecast + Next 7 Days */}
-            <div className="grid grid-cols-5 gap-5 mb-5">
-              <div className="col-span-3 bg-white border border-[#EBEBF0] rounded-2xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-5">
+              <div className="md:col-span-3 bg-white border border-[#EBEBF0] rounded-2xl p-6">
                 <p className="text-[11px] font-semibold text-[#9999AA] uppercase tracking-widest mb-5">
                   Stress Forecast / 7 Days
                 </p>
@@ -169,19 +122,19 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="col-span-2 bg-white border border-[#EBEBF0] rounded-2xl p-6">
+              <div className="md:col-span-2 bg-white border border-[#EBEBF0] rounded-2xl p-6">
                 <p className="text-[11px] font-semibold text-[#9999AA] uppercase tracking-widest mb-5">Next 7 Days</p>
                 {next7.length === 0 ? (
                   <p className="text-sm text-[#C8C8D0] text-center py-6">Nothing due this week</p>
                 ) : (
                   <div className="space-y-4">
                     {next7.map((d) => (
-                      <div key={d.id} className="flex items-center justify-between">
+                      <div key={d.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
                         <div>
                           <p className="text-sm font-bold text-[#0F0F0F]">{d.title}</p>
                           <p className="text-[11px] text-[#9999AA] font-medium">{courseMap.get(d.courseId)?.code ?? 'Unknown course'}</p>
                         </div>
-                        <span className={`text-sm font-bold shrink-0 ml-3 ${
+                        <span className={`text-sm font-bold shrink-0 sm:ml-3 ${
                           daysLabel(d.date) === 'Tmrw' || daysLabel(d.date) === 'Today'
                             ? 'text-red-500'
                             : 'text-[#9999AA]'
@@ -205,21 +158,14 @@ export default function Dashboard() {
                   {sorted.map((d) => {
                     const isUrgent = daysLabel(d.date) === 'Today' || daysLabel(d.date) === 'Tmrw'
                     return (
-                      <div key={d.id} className="flex items-center gap-4">
-                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md min-w-[72px] text-center ${typeCls(d.type)}`}>
-                          {d.type}
-                        </span>
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#0F0F0F] truncate">{d.title}</span>
-                          <span className="text-[11px] text-[#9999AA] shrink-0">{courseMap.get(d.courseId)?.code ?? 'Unknown course'}</span>
-                        </div>
-                        <span className="text-[11px] font-semibold shrink-0 text-[#9999AA]">{formatWeight(d.weight) ?? '—'}</span>
-                        <span className={`text-sm font-semibold shrink-0 min-w-[44px] text-right ${
-                          isUrgent ? 'text-orange-500' : 'text-[#9999AA]'
-                        }`}>
-                          {formatDue(d.date)}
-                        </span>
-                      </div>
+                      <DeadlineRow
+                        key={d.id}
+                        deadline={d}
+                        courseLabel={courseMap.get(d.courseId)?.code ?? 'Unknown course'}
+                        dueLabel={formatDue(d.date)}
+                        dueDateColorClass={isUrgent ? 'text-orange-500' : 'text-[#9999AA]'}
+                        dueDateMinWidth="min-w-[44px]"
+                      />
                     )
                   })}
                 </div>
@@ -233,7 +179,7 @@ export default function Dashboard() {
       {!loading && activeMood && todayScore >= 40 && showAlert && (() => {
         const high = todayScore >= 70
         return (
-          <div className={`fixed bottom-6 right-6 w-72 bg-white rounded-2xl p-5 shadow-2xl border ${
+          <div className={`fixed bottom-4 left-4 right-4 w-auto md:left-auto md:right-6 md:bottom-6 md:w-72 bg-white rounded-2xl p-5 shadow-2xl border ${
             high ? 'border-red-300' : 'border-yellow-300'
           }`}>
             <div className="flex items-start justify-between mb-2">

@@ -50,12 +50,12 @@ const upcoming = [
 
 export default function Landing() {
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen bg-white overflow-x-hidden">
       {/* Background glow */}
-      <div className="pointer-events-none absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#EDEDFF] opacity-60 blur-3xl -translate-y-1/3 translate-x-1/4" />
+      <div className="pointer-events-none absolute top-0 right-0 w-[300px] h-[300px] md:w-[600px] md:h-[600px] rounded-full bg-[#EDEDFF] opacity-60 blur-3xl -translate-y-1/3 translate-x-1/4" />
 
       {/* Navbar */}
-      <nav className="relative flex items-center justify-between px-8 py-5">
+      <nav className="relative flex items-center justify-between px-4 md:px-8 py-5">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-[#5B5BD6] flex items-center justify-center">
             <span className="text-white text-xs font-extrabold tracking-tight">S</span>
@@ -67,7 +67,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative max-w-6xl mx-auto px-8 pt-14 pb-32 flex items-center gap-16">
+      <section className="relative max-w-6xl mx-auto px-4 md:px-8 pt-14 pb-32 flex flex-col gap-10 md:flex-row md:items-center md:gap-16">
         {/* Left copy */}
         <div className="flex-1 min-w-0">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EDEDFF] text-[#5B5BD6] text-xs font-semibold mb-6">
@@ -75,7 +75,7 @@ export default function Landing() {
             Built for Southeastern students
           </div>
 
-          <h1 className="text-[3.25rem] font-extrabold text-[#0F0F0F] leading-[1.08] tracking-tight mb-5">
+          <h1 className="text-4xl md:text-[3.25rem] font-extrabold text-[#0F0F0F] leading-[1.08] tracking-tight mb-5">
             Know your hard<br />
             weeks{' '}
             <span className="text-[#5B5BD6]">before</span>
@@ -89,7 +89,7 @@ export default function Landing() {
         </div>
 
         {/* Right — app preview mockup */}
-        <div className="flex-shrink-0 w-[400px] relative mt-4">
+        <div className="w-full max-w-[400px] mx-auto md:mx-0 md:w-[400px] md:flex-shrink-0 relative mt-4">
           {/* Main forecast card */}
           <div className="bg-white rounded-2xl border border-[#EBEBF0] shadow-2xl p-5">
             <div className="flex items-center justify-between mb-5">
@@ -152,7 +152,7 @@ export default function Landing() {
 
       {/* Feature strip */}
       <section className="border-t border-[#F0F0F5] bg-[#FAFAFA]">
-        <div className="max-w-6xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map(f => (
             <div key={f.title}>
               <div className="w-9 h-9 rounded-xl bg-[#EDEDFF] text-[#5B5BD6] flex items-center justify-center mb-4">

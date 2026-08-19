@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { GoogleGenAI } from '@google/genai/web'
 import { useAuth } from '../auth/AuthContext'
 import { useAppState } from '../lib/AppContext'
 import { getUpcoming } from '../lib/stress'
+import Navbar from '../components/Navbar'
 
 function isGeminiConfigured() {
   const key = import.meta.env.VITE_GEMINI_API_KEY
@@ -55,7 +55,7 @@ const resources = [
 
 function ResourcesTab() {
   return (
-    <div className="max-w-5xl mx-auto px-8 py-10">
+    <div className="h-full overflow-y-auto max-w-5xl mx-auto px-4 md:px-8 py-10">
       <div className="mb-8">
         <h2 className="text-xl font-bold text-[#0F0F0F] mb-1">Campus Resources</h2>
         <p className="text-sm text-[#6B6B80]">SLU services available to support your wellbeing.</p>
@@ -160,9 +160,9 @@ function AITab() {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 114px)' }}>
+    <div className="h-full flex flex-col">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-8 py-6">
         <div className="max-w-2xl mx-auto flex flex-col gap-4">
           {messages.map(msg => (
             <div
@@ -202,7 +202,7 @@ function AITab() {
       </div>
 
       {/* Input bar */}
-      <div className="border-t border-[#EBEBF0] bg-white px-8 pt-4 pb-3">
+      <div className="border-t border-[#EBEBF0] bg-white px-4 md:px-8 pt-4 pb-3">
         <div className="max-w-2xl mx-auto flex items-end gap-3">
           <textarea
             rows={1}
@@ -236,45 +236,17 @@ function AITab() {
 }
 
 export default function Support() {
-  const navigate = useNavigate()
   const [tab, setTab] = useState('resources')
-  const { user, signOut } = useAuth()
-  const displayName = user?.displayName || user?.email || 'User'
-
-  async function handleSignOut() {
-    await signOut()
-    navigate('/', { replace: true })
-  }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-[#F0F0F5] px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#5B5BD6] flex items-center justify-center">
-            <span className="text-white text-xs font-extrabold tracking-tight">S</span>
-          </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">Serene</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Link to="/dashboard" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Dashboard</Link>
-          <Link to="/courses" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">Courses</Link>
-          <Link to="/support" className="px-4 py-2 text-sm font-semibold rounded-full bg-[#5B5BD6] text-white">Support Hub</Link>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/profile" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
-              <span className="text-[#5B5BD6] text-xs font-extrabold">{displayName[0].toUpperCase()}</span>
-            </div>
-            <span className="text-sm font-semibold text-[#0F0F0F]">{displayName}</span>
-          </Link>
-          <button onClick={handleSignOut} className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">Sign out</button>
-        </div>
-      </nav>
+    <div className="h-screen flex flex-col bg-[#FAFAFA] overflow-hidden">
+      <div className="shrink-0">
+        <Navbar />
+      </div>
 
       {/* Tab toggles */}
-      <div className="bg-white border-b border-[#EBEBF0]">
-        <div className="max-w-5xl mx-auto px-8 flex gap-1 pt-3">
+      <div className="shrink-0 bg-white border-b border-[#EBEBF0]">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 flex gap-1 pt-3 overflow-x-auto">
           {[
             { key: 'resources', label: 'Campus Resources' },
             { key: 'ai', label: 'AI Assistant' },
@@ -282,7 +254,7 @@ export default function Support() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-t-xl border-b-2 transition-colors ${
+              className={`px-5 py-2.5 text-sm font-semibold rounded-t-xl border-b-2 transition-colors whitespace-nowrap ${
                 tab === t.key
                   ? 'text-[#5B5BD6] border-[#5B5BD6] bg-[#FAFAFA]'
                   : 'text-[#6B6B80] border-transparent hover:text-[#0F0F0F]'
@@ -294,7 +266,9 @@ export default function Support() {
         </div>
       </div>
 
-      {tab === 'resources' ? <ResourcesTab /> : <AITab />}
+      <div className="flex-1 min-h-0">
+        {tab === 'resources' ? <ResourcesTab /> : <AITab />}
+      </div>
     </div>
   )
 }

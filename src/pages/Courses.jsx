@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
 import { useAppState } from '../lib/AppContext'
-import { parseLocal, courseStressScore, stressMeta, typeCls, formatDue, formatWeight, daysLabel } from '../lib/stress'
+import { parseLocal, courseStressScore, stressMeta, formatDue, daysLabel } from '../lib/stress'
+import Navbar from '../components/Navbar'
+import DeadlineRow from '../components/DeadlineRow'
 
 const BLANK_COURSE_FORM = { code: '', name: '', instructor: '', credits: '' }
 
@@ -20,14 +20,11 @@ function isValidWeight(w) {
 }
 
 export default function Courses() {
-  const navigate = useNavigate()
-  const { user, signOut } = useAuth()
   const {
     courses, addCourse, updateCourse, deleteCourse,
     deadlines, addDeadline, updateDeadline, deleteDeadline, toggleComplete,
     loading,
   } = useAppState()
-  const displayName = user?.displayName || user?.email || 'User'
 
   const [selected, setSelected] = useState(null)
   const [domain, setDomain] = useState('')
@@ -41,11 +38,6 @@ export default function Courses() {
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-
-  async function handleSignOut() {
-    await signOut()
-    navigate('/', { replace: true })
-  }
 
   function openAddDeadline() {
     setDeadlineForm({ courseId: courses[0]?.id ?? '', title: '', date: '', weight: '', type: 'assignment' })
@@ -131,42 +123,10 @@ export default function Courses() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-[#F0F0F5] px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#5B5BD6] flex items-center justify-center">
-            <span className="text-white text-xs font-extrabold tracking-tight">S</span>
-          </div>
-          <span className="text-[#0F0F0F] font-bold text-lg tracking-tight">Serene</span>
-        </div>
+      <Navbar />
 
-        <div className="flex items-center gap-1">
-          <Link to="/dashboard" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">
-            Dashboard
-          </Link>
-          <Link to="/courses" className="px-4 py-2 text-sm font-semibold rounded-full bg-[#5B5BD6] text-white">
-            Courses
-          </Link>
-          <Link to="/support" className="px-4 py-2 text-sm font-semibold rounded-full text-[#6B6B80] hover:text-[#0F0F0F] hover:bg-[#F7F7FA] transition-colors">
-            Support Hub
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link to="/profile" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-full bg-[#EDEDFF] flex items-center justify-center">
-              <span className="text-[#5B5BD6] text-xs font-extrabold">{displayName[0].toUpperCase()}</span>
-            </div>
-            <span className="text-sm font-semibold text-[#0F0F0F]">{displayName}</span>
-          </Link>
-          <button onClick={handleSignOut} className="text-xs font-semibold text-[#9999AA] hover:text-[#0F0F0F] transition-colors">
-            Sign out
-          </button>
-        </div>
-      </nav>
-
-      <main className="max-w-5xl mx-auto px-8 py-10">
-        <h1 className="text-3xl font-extrabold text-[#0F0F0F] tracking-tight mb-8">My Courses</h1>
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-10">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F0F0F] tracking-tight mb-8">My Courses</h1>
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -176,7 +136,7 @@ export default function Courses() {
           <>
             {/* Canvas LMS */}
             <div className="bg-white border border-[#EBEBF0] rounded-2xl p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center shrink-0">
                     <span className="text-white font-extrabold text-base">C</span>
@@ -186,7 +146,7 @@ export default function Courses() {
                     <p className="text-[11px] text-[#9999AA]">Instructure Canvas</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     disabled
                     className="px-4 py-2 bg-[#5B5BD6]/40 text-white text-sm font-bold rounded-xl cursor-not-allowed"
@@ -248,7 +208,7 @@ export default function Courses() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                   {courses.map((course) => {
                     const score = courseStressScore(course.id, today, deadlines)
                     const meta = stressMeta(score)
@@ -292,11 +252,11 @@ export default function Courses() {
                                 Next: <span className="font-bold text-[#6B6B80]">{formatDue(next.date)}</span>
                               </span>
                             )}
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={(e) => { e.stopPropagation(); openEditCourse(course) }}
                                 title="Edit"
-                                className="p-1.5 rounded-lg text-[#9999AA] hover:text-[#5B5BD6] hover:bg-[#EDEDFF] transition-colors"
+                                className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center rounded-lg text-[#9999AA] hover:text-[#5B5BD6] hover:bg-[#EDEDFF] transition-colors"
                               >
                                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -306,7 +266,7 @@ export default function Courses() {
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course) }}
                                 title="Delete"
-                                className="p-1.5 rounded-lg text-[#9999AA] hover:text-red-500 hover:bg-red-50 transition-colors"
+                                className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center rounded-lg text-[#9999AA] hover:text-red-500 hover:bg-red-50 transition-colors"
                               >
                                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                                   <polyline points="3 6 5 6 21 6" />
@@ -363,60 +323,17 @@ export default function Courses() {
                     const isUrgent = label === 'Today' || label === 'Tmrw'
                     const course = courses.find(c => c.id === d.courseId)
                     return (
-                      <div key={d.id} className="flex items-center gap-4 group">
-                        {/* Complete check */}
-                        <div className="relative shrink-0 group/check">
-                          <button
-                            onClick={() => toggleComplete(d.id)}
-                            className="w-5 h-5 rounded-full border-2 border-[#D0D0DC] hover:border-green-500 flex items-center justify-center transition-colors"
-                          />
-                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0F0F0F] text-white text-[10px] font-semibold rounded-md whitespace-nowrap opacity-0 group-hover/check:opacity-100 transition-opacity pointer-events-none">
-                            Mark as complete
-                          </span>
-                        </div>
-
-                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md min-w-[72px] text-center ${typeCls(d.type)}`}>
-                          {d.type}
-                        </span>
-
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#0F0F0F] truncate">{d.title}</span>
-                          {!selected && (
-                            <span className="text-[11px] text-[#9999AA] shrink-0">{course?.code ?? 'Unknown course'}</span>
-                          )}
-                        </div>
-
-                        <span className="text-[11px] font-semibold shrink-0 text-[#9999AA]">{formatWeight(d.weight) ?? '—'}</span>
-                        <span className={`text-sm font-semibold shrink-0 min-w-[44px] text-right ${isUrgent ? 'text-orange-500' : 'text-[#9999AA]'}`}>
-                          {formatDue(d.date)}
-                        </span>
-
-                        {/* Edit / Delete — visible on hover */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <button
-                            onClick={() => openEditDeadline(d)}
-                            title="Edit"
-                            className="p-1.5 rounded-lg text-[#9999AA] hover:text-[#5B5BD6] hover:bg-[#EDEDFF] transition-colors"
-                          >
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => deleteDeadline(d.id)}
-                            title="Delete"
-                            className="p-1.5 rounded-lg text-[#9999AA] hover:text-red-500 hover:bg-red-50 transition-colors"
-                          >
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6l-1 14H6L5 6" />
-                              <path d="M10 11v6M14 11v6" />
-                              <path d="M9 6V4h6v2" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
+                      <DeadlineRow
+                        key={d.id}
+                        deadline={d}
+                        courseLabel={!selected ? (course?.code ?? 'Unknown course') : null}
+                        dueLabel={formatDue(d.date)}
+                        dueDateColorClass={isUrgent ? 'text-orange-500' : 'text-[#9999AA]'}
+                        dueDateMinWidth="min-w-[44px]"
+                        onToggleComplete={toggleComplete}
+                        onEdit={openEditDeadline}
+                        onDelete={deleteDeadline}
+                      />
                     )
                   })}
                 </div>
@@ -440,60 +357,18 @@ export default function Courses() {
                   {pastDeadlines.map((d) => {
                     const course = courses.find(c => c.id === d.courseId)
                     return (
-                      <div key={d.id} className="flex items-center gap-4 group">
-                        {/* Complete check */}
-                        <div className="relative shrink-0 group/check">
-                          <button
-                            onClick={() => toggleComplete(d.id)}
-                            className="w-5 h-5 rounded-full border-2 border-[#D0D0DC] hover:border-green-500 flex items-center justify-center transition-colors"
-                          />
-                          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0F0F0F] text-white text-[10px] font-semibold rounded-md whitespace-nowrap opacity-0 group-hover/check:opacity-100 transition-opacity pointer-events-none">
-                            Mark as complete
-                          </span>
-                        </div>
-
-                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md min-w-[72px] text-center opacity-70 ${typeCls(d.type)}`}>
-                          {d.type}
-                        </span>
-
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#6B6B80] truncate">{d.title}</span>
-                          {!selected && (
-                            <span className="text-[11px] text-[#9999AA] shrink-0">{course?.code ?? 'Unknown course'}</span>
-                          )}
-                        </div>
-
-                        <span className="text-[11px] font-semibold shrink-0 text-[#9999AA]">{formatWeight(d.weight) ?? '—'}</span>
-                        <span className="text-sm font-semibold shrink-0 min-w-[80px] text-right text-red-500">
-                          {daysLabel(d.date, today)}
-                        </span>
-
-                        {/* Edit / Delete — visible on hover */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <button
-                            onClick={() => openEditDeadline(d)}
-                            title="Edit"
-                            className="p-1.5 rounded-lg text-[#9999AA] hover:text-[#5B5BD6] hover:bg-[#EDEDFF] transition-colors"
-                          >
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => deleteDeadline(d.id)}
-                            title="Delete"
-                            className="p-1.5 rounded-lg text-[#9999AA] hover:text-red-500 hover:bg-red-50 transition-colors"
-                          >
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6l-1 14H6L5 6" />
-                              <path d="M10 11v6M14 11v6" />
-                              <path d="M9 6V4h6v2" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
+                      <DeadlineRow
+                        key={d.id}
+                        deadline={d}
+                        courseLabel={!selected ? (course?.code ?? 'Unknown course') : null}
+                        dueLabel={daysLabel(d.date, today)}
+                        dueDateColorClass="text-red-500"
+                        dueDateMinWidth="min-w-[80px]"
+                        dimmed
+                        onToggleComplete={toggleComplete}
+                        onEdit={openEditDeadline}
+                        onDelete={deleteDeadline}
+                      />
                     )
                   })}
                 </div>
